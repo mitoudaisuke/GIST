@@ -10,34 +10,16 @@
     html, body {
       margin: 0;
       padding: 0;
+      width: 100%;
+      height: 100%;
       background: #111;
       color: #eee;
-      font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
-      height: 100%;
       overflow: hidden;
     }
 
-    .bar {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 10px 12px;
-      background: rgba(20, 20, 20, 0.95);
-      border-bottom: 1px solid #333;
-      box-sizing: border-box;
-    }
-
-    .status {
-      font-size: 12px;
-      color: #aaa;
-      white-space: nowrap;
-    }
-
     #viewer {
-      height: calc(100vh - 42px);
+      width: 100vw;
+      height: 100vh;
       overflow-x: auto;
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
@@ -51,18 +33,15 @@
       word-break: normal;
       overflow-wrap: normal;
       font-family: monospace;
-      line-height: 1.35;
       font-size: 13px;
+      line-height: 1.35;
       box-sizing: border-box;
       min-width: max-content;
+      min-height: 100%;
     }
   </style>
 </head>
 <body>
-  <div class="bar">
-    <div class="status" id="status">読み込み待機</div>
-  </div>
-
   <div id="viewer">
     <pre id="content">Loading...</pre>
   </div>
@@ -70,7 +49,6 @@
   <script>
     const GIST_RAW_URL = "https://gist.githubusercontent.com/mitoudaisuke/ea5ebde96fbaebe416bde113c7aed631/raw/";
     const contentEl = document.getElementById("content");
-    const statusEl = document.getElementById("status");
     const viewerEl = document.getElementById("viewer");
 
     let lastLoadedAt = 0;
@@ -88,8 +66,6 @@
         return;
       }
 
-      statusEl.textContent = "更新中...";
-
       try {
         const url = GIST_RAW_URL + "?t=" + now;
         const res = await fetch(url, { cache: "no-store" });
@@ -100,16 +76,8 @@
         const text = await res.text();
         contentEl.textContent = text;
         lastLoadedAt = now;
-
-        const d = new Date();
-        const hh = String(d.getHours()).padStart(2, "0");
-        const mm = String(d.getMinutes()).padStart(2, "0");
-        const ss = String(d.getSeconds()).padStart(2, "0");
-        statusEl.textContent = `最終更新 ${hh}:${mm}:${ss}`;
-
         scrollToBottom();
       } catch (e) {
-        statusEl.textContent = "更新失敗";
         console.error(e);
       }
     }
