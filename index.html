@@ -1,9 +1,10 @@
-<!doctype html>
-<html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>My Gist Viewer</title>
+
+  <link rel="apple-touch-icon" href="./icon.png">
+
   <style>
     html, body {
       margin: 0;
@@ -31,57 +32,3 @@
     }
   </style>
 </head>
-<body>
-  <pre id="content">Loading...</pre>
-
-  <script>
-    const GIST_RAW_URL = "https://gist.githubusercontent.com/mitoudaisuke/ea5ebde96fbaebe416bde113c7aed631/raw/";
-    const contentEl = document.getElementById("content");
-
-    let lastLoadedAt = 0;
-    const MIN_INTERVAL_MS = 3000;
-
-    function scrollToBottom() {
-      requestAnimationFrame(() => {
-        window.scrollTo(0, document.documentElement.scrollHeight);
-      });
-    }
-
-    async function loadGist(force = false) {
-      const now = Date.now();
-      if (!force && now - lastLoadedAt < MIN_INTERVAL_MS) {
-        return;
-      }
-
-      try {
-        const url = GIST_RAW_URL + "?t=" + now;
-        const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) {
-          throw new Error("HTTP " + res.status);
-        }
-
-        const text = await res.text();
-        contentEl.textContent = text;
-        lastLoadedAt = now;
-        scrollToBottom();
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") {
-        loadGist(true);
-      }
-    });
-
-    window.addEventListener("pageshow", () => {
-      loadGist(true);
-    });
-
-    window.addEventListener("load", () => {
-      loadGist(true);
-    });
-  </script>
-</body>
-</html>
