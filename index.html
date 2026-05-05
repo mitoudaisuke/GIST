@@ -151,13 +151,25 @@
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
     }
 
-    .log-card-title {
+    .log-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
       padding: 7px 12px;
       border-bottom: 1px solid var(--line-soft);
       background: #23231f;
+      white-space: nowrap;
+    }
+
+    .log-card-title {
       color: var(--accent-strong);
       font: 700 12px/1.25 var(--sans);
-      white-space: nowrap;
+    }
+
+    .log-card-time {
+      color: var(--muted);
+      font: 12px/1.25 var(--mono);
     }
 
     .log-card-body {
@@ -403,6 +415,10 @@
       return /^└.*┘$/.test(line);
     }
 
+    function isTimeOnlyLine(line) {
+      return /^\d{2}:\d{2}:\d{2}$/.test(String(line).trim());
+    }
+
     function formatBoxTitle(line) {
       const text = line.replace(/[┌┐─]/g, "").trim();
       return text || "LOG";
@@ -427,13 +443,24 @@
       fragment.append(lineEl);
     }
 
-    function appendLogCard(fragment, title, bodyLines) {
+    function appendLogCard(fragment, title, bodyLines, timeText = "") {
       const cardEl = document.createElement("section");
       cardEl.className = "log-card";
+
+      const headerEl = document.createElement("div");
+      headerEl.className = "log-card-header";
 
       const titleEl = document.createElement("div");
       titleEl.className = "log-card-title";
       titleEl.textContent = title;
+      headerEl.append(titleEl);
+
+      if (timeText) {
+        const timeEl = document.createElement("time");
+        timeEl.className = "log-card-time";
+        timeEl.textContent = timeText;
+        headerEl.append(timeEl);
+      }
 
       const bodyEl = document.createElement("div");
       bodyEl.className = "log-card-body";
@@ -445,7 +472,7 @@
         bodyEl.append(lineEl);
       });
 
-      cardEl.append(titleEl, bodyEl);
+      cardEl.append(headerEl, bodyEl);
       fragment.append(cardEl);
     }
 
@@ -458,12 +485,17 @@
 
       for (let index = 0; index < lines.length; index += 1) {
         const line = lines[index];
+        if (isTimeOnlyLine(line) && isBoxStart(lines[index + 1] || "")) {
+          continue;
+        }
+
         if (!isBoxStart(line)) {
           appendPlainLine(fragment, line);
           continue;
         }
 
         const title = formatBoxTitle(line);
+        const timeText = index > 0 && isTimeOnlyLine(lines[index - 1]) ? lines[index - 1].trim() : "";
         const bodyLines = [];
         let cursor = index + 1;
         while (cursor < lines.length && !isBoxEnd(lines[cursor])) {
@@ -472,7 +504,7 @@
         }
 
         if (cursor < lines.length && isBoxEnd(lines[cursor])) {
-          appendLogCard(fragment, title, bodyLines);
+          appendLogCard(fragment, title, bodyLines, timeText);
           index = cursor;
         } else {
           appendPlainLine(fragment, line);
