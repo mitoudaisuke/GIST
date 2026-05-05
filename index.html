@@ -169,15 +169,6 @@
       line-height: 1;
     }
 
-    .viewer-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      border-bottom: 1px solid var(--line-soft);
-      background: #1d1d1b;
-    }
-
     .info-strip {
       display: flex;
       align-items: center;
@@ -223,72 +214,6 @@
       margin: 0;
       color: var(--text);
       font: 13px/1.25 var(--mono);
-      white-space: nowrap;
-    }
-
-    .search-field {
-      position: relative;
-      flex: 1 1 280px;
-      min-width: 120px;
-    }
-
-    .search-field::before {
-      position: absolute;
-      top: 50%;
-      left: 11px;
-      color: var(--muted);
-      content: "⌕";
-      font-size: 16px;
-      line-height: 1;
-      transform: translateY(-50%);
-      pointer-events: none;
-    }
-
-    .search-input {
-      width: 100%;
-      height: 36px;
-      padding: 0 12px 0 33px;
-      border: 1px solid var(--line);
-      border-radius: 7px;
-      outline: none;
-      background: #121211;
-      color: var(--text);
-      font-size: 13px;
-    }
-
-    .search-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent), transparent 78%);
-    }
-
-    .control-pill {
-      height: 36px;
-      display: inline-flex;
-      flex: 0 0 auto;
-      align-items: center;
-      gap: 7px;
-      padding: 0 10px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--panel-strong);
-      color: var(--muted-strong);
-      font-size: 12px;
-      white-space: nowrap;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .control-pill input {
-      width: 15px;
-      height: 15px;
-      margin: 0;
-      accent-color: var(--accent);
-    }
-
-    .line-stats {
-      flex: 0 0 auto;
-      color: var(--muted);
-      font: 12px/1 var(--mono);
       white-space: nowrap;
     }
 
@@ -348,12 +273,6 @@
       white-space: pre-wrap;
     }
 
-    mark {
-      border-radius: 3px;
-      background: color-mix(in srgb, var(--warn), transparent 25%);
-      color: #17120a;
-    }
-
     .empty-state {
       padding: 28px 18px;
       color: var(--muted);
@@ -396,7 +315,6 @@
       }
 
       .viewer-actions,
-      .viewer-toolbar,
       .info-strip {
         width: 100%;
       }
@@ -406,17 +324,9 @@
         min-width: 0;
       }
 
-      .viewer-toolbar {
-        flex-wrap: wrap;
-      }
-
       .info-card {
         width: 100%;
         min-width: 0;
-      }
-
-      .search-field {
-        flex-basis: 100%;
       }
 
       .button-text {
@@ -462,20 +372,6 @@
         </button>
       </div>
     </header>
-    <section class="viewer-toolbar" aria-label="ログ操作">
-      <label class="search-field">
-        <input class="search-input" id="searchInput" type="search" placeholder="検索" aria-label="検索" autocomplete="off">
-      </label>
-      <label class="control-pill">
-        <input id="wrapToggle" type="checkbox" checked>
-        折り返し
-      </label>
-      <label class="control-pill">
-        <input id="followToggle" type="checkbox" checked>
-        追従
-      </label>
-      <span class="line-stats" id="lineStats">0行</span>
-    </section>
     <section class="info-strip" aria-label="システム情報">
       <div class="info-card">
         <span class="info-icon" aria-hidden="true">↻</span>
@@ -528,10 +424,6 @@
     const summaryEl = document.getElementById("summary");
     const refreshButton = document.getElementById("refreshButton");
     const copyButton = document.getElementById("copyButton");
-    const searchInput = document.getElementById("searchInput");
-    const wrapToggle = document.getElementById("wrapToggle");
-    const followToggle = document.getElementById("followToggle");
-    const lineStats = document.getElementById("lineStats");
     const rebootInfo = document.getElementById("rebootInfo");
     const supervisorInfo = document.getElementById("supervisorInfo");
     const runnerInfo = document.getElementById("runnerInfo");
@@ -544,10 +436,6 @@
     const STOCKS_META_PREFIX = "# stocks-meta ";
 
     function scrollToBottom() {
-      if (!followToggle.checked) {
-        return;
-      }
-
       requestAnimationFrame(() => {
         logViewport.scrollTop = logViewport.scrollHeight;
         window.scrollTo(0, document.documentElement.scrollHeight);
@@ -564,34 +452,6 @@
       }
 
       return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
-    }
-
-    function appendHighlightedText(target, line, query) {
-      if (!query) {
-        target.textContent = line;
-        return;
-      }
-
-      const lowerLine = line.toLowerCase();
-      const lowerQuery = query.toLowerCase();
-      let cursor = 0;
-      let index = lowerLine.indexOf(lowerQuery);
-
-      while (index !== -1) {
-        if (index > cursor) {
-          target.append(document.createTextNode(line.slice(cursor, index)));
-        }
-
-        const mark = document.createElement("mark");
-        mark.textContent = line.slice(index, index + query.length);
-        target.append(mark);
-        cursor = index + query.length;
-        index = lowerLine.indexOf(lowerQuery, cursor);
-      }
-
-      if (cursor < line.length) {
-        target.append(document.createTextNode(line.slice(cursor)));
-      }
     }
 
     function parseStocksMetadata(lines) {
@@ -686,19 +546,11 @@
       currentText = text;
       const lines = splitLines(text);
       const metadata = parseStocksMetadata(lines);
-      const query = searchInput.value.trim();
       const fragment = document.createDocumentFragment();
-      let visibleCount = 0;
 
       contentEl.textContent = "";
 
       lines.forEach((line, index) => {
-        if (query && !line.toLowerCase().includes(query.toLowerCase())) {
-          return;
-        }
-
-        visibleCount += 1;
-
         const lineEl = document.createElement("div");
         lineEl.className = "log-line";
 
@@ -708,7 +560,7 @@
 
         const textEl = document.createElement("code");
         textEl.className = "line-text";
-        appendHighlightedText(textEl, line, query);
+        textEl.textContent = line;
 
         lineEl.append(numberEl, textEl);
         fragment.append(lineEl);
@@ -719,17 +571,9 @@
         emptyEl.className = "empty-state";
         emptyEl.textContent = "ログが空です";
         fragment.append(emptyEl);
-      } else if (!visibleCount) {
-        const emptyEl = document.createElement("div");
-        emptyEl.className = "empty-state";
-        emptyEl.textContent = "一致する行がありません";
-        fragment.append(emptyEl);
       }
 
       contentEl.append(fragment);
-      lineStats.textContent = query
-        ? visibleCount + "/" + lines.length + "行"
-        : lines.length + "行";
       summaryEl.textContent = "simple.log · " + lines.length + "行";
       rebootInfo.textContent = formatRebootInfo(lines, metadata);
       supervisorInfo.textContent = formatMetadataDate(metadata, "last_supervisor_restart_at");
@@ -779,14 +623,6 @@
         console.error(e);
         setStatus("コピー失敗");
       }
-    });
-
-    searchInput.addEventListener("input", () => {
-      renderLog(currentText);
-    });
-
-    wrapToggle.addEventListener("change", () => {
-      logViewport.classList.toggle("is-wrapped", wrapToggle.checked);
     });
 
     document.addEventListener("visibilitychange", () => {
