@@ -62,7 +62,7 @@
     .viewer-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       gap: 14px;
       padding: 14px;
       border-bottom: 1px solid var(--line);
@@ -107,66 +107,6 @@
       font-size: 12px;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-
-    .viewer-actions,
-    .viewer-tools {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .viewer-actions {
-      flex: 0 0 auto;
-    }
-
-    .viewer-status {
-      min-width: 112px;
-      padding: 6px 9px;
-      border: 1px solid var(--line-soft);
-      border-radius: 999px;
-      background: #1b1b19;
-      color: var(--muted-strong);
-      font-size: 12px;
-      text-align: center;
-      white-space: nowrap;
-    }
-
-    .viewer-button {
-      height: 34px;
-      border: 1px solid var(--line);
-      border-radius: 7px;
-      background: var(--panel-strong);
-      color: var(--text);
-      cursor: pointer;
-    }
-
-    .viewer-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 0 11px;
-      font-size: 13px;
-    }
-
-    .viewer-button:hover {
-      border-color: color-mix(in srgb, var(--accent), var(--line) 45%);
-      background: #30302d;
-    }
-
-    .viewer-button:active {
-      transform: translateY(1px);
-    }
-
-    .viewer-button:disabled {
-      cursor: wait;
-      opacity: 0.66;
-    }
-
-    .button-icon {
-      color: var(--accent-strong);
-      font-size: 15px;
-      line-height: 1;
     }
 
     .info-strip {
@@ -314,29 +254,13 @@
         flex-direction: column;
       }
 
-      .viewer-actions,
       .info-strip {
         width: 100%;
-      }
-
-      .viewer-status {
-        flex: 1;
-        min-width: 0;
       }
 
       .info-card {
         width: 100%;
         min-width: 0;
-      }
-
-      .button-text {
-        display: none;
-      }
-
-      .viewer-button {
-        width: 38px;
-        justify-content: center;
-        padding: 0;
       }
 
       .log-line {
@@ -359,17 +283,6 @@
           <h1 class="viewer-title">My Gist Viewer</h1>
           <p class="viewer-subtitle" id="summary">simple.log</p>
         </div>
-      </div>
-      <div class="viewer-actions">
-        <span class="viewer-status" id="status">読み込み中...</span>
-        <button class="viewer-button" id="refreshButton" type="button" title="更新" aria-label="更新">
-          <span class="button-icon" aria-hidden="true">↻</span>
-          <span class="button-text">更新</span>
-        </button>
-        <button class="viewer-button" id="copyButton" type="button" title="コピー" aria-label="コピー">
-          <span class="button-icon" aria-hidden="true">⧉</span>
-          <span class="button-text">コピー</span>
-        </button>
       </div>
     </header>
     <section class="info-strip" aria-label="システム情報">
@@ -420,10 +333,7 @@
     const GIST_RAW_URL = "https://gist.githubusercontent.com/mitoudaisuke/ea5ebde96fbaebe416bde113c7aed631/raw/simple.log";
     const contentEl = document.getElementById("content");
     const logViewport = document.getElementById("logViewport");
-    const statusEl = document.getElementById("status");
     const summaryEl = document.getElementById("summary");
-    const refreshButton = document.getElementById("refreshButton");
-    const copyButton = document.getElementById("copyButton");
     const rebootInfo = document.getElementById("rebootInfo");
     const supervisorInfo = document.getElementById("supervisorInfo");
     const runnerInfo = document.getElementById("runnerInfo");
@@ -431,7 +341,6 @@
     const fxCloseInfo = document.getElementById("fxCloseInfo");
 
     let lastLoadedAt = 0;
-    let currentText = "";
     const MIN_INTERVAL_MS = 3000;
     const STOCKS_META_PREFIX = "# stocks-meta ";
 
@@ -440,10 +349,6 @@
         logViewport.scrollTop = logViewport.scrollHeight;
         window.scrollTo(0, document.documentElement.scrollHeight);
       });
-    }
-
-    function setStatus(message) {
-      statusEl.textContent = message;
     }
 
     function splitLines(text) {
@@ -543,7 +448,6 @@
     }
 
     function renderLog(text) {
-      currentText = text;
       const lines = splitLines(text);
       const metadata = parseStocksMetadata(lines);
       const fragment = document.createDocumentFragment();
@@ -588,9 +492,6 @@
         return;
       }
 
-      refreshButton.disabled = true;
-      setStatus("読み込み中...");
-
       try {
         const url = GIST_RAW_URL + "?t=" + now;
         const res = await fetch(url, { cache: "no-store" });
@@ -601,29 +502,11 @@
         const text = await res.text();
         renderLog(text);
         lastLoadedAt = now;
-        setStatus("更新 " + new Date(now).toLocaleTimeString("ja-JP", { hour12: false }));
         scrollToBottom();
       } catch (e) {
         console.error(e);
-        setStatus("更新失敗");
-      } finally {
-        refreshButton.disabled = false;
       }
     }
-
-    refreshButton.addEventListener("click", () => {
-      loadGist(true);
-    });
-
-    copyButton.addEventListener("click", async () => {
-      try {
-        await navigator.clipboard.writeText(currentText);
-        setStatus("コピーしました");
-      } catch (e) {
-        console.error(e);
-        setStatus("コピー失敗");
-      }
-    });
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
