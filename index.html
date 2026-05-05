@@ -140,11 +140,50 @@
       white-space: pre;
     }
 
+    .log-card {
+      width: fit-content;
+      max-width: calc(100% - 28px);
+      margin: 8px 14px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #181817;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+    }
+
+    .log-card-title {
+      padding: 7px 12px;
+      border-bottom: 1px solid var(--line-soft);
+      background: #23231f;
+      color: var(--accent-strong);
+      font: 700 12px/1.25 var(--sans);
+      white-space: nowrap;
+    }
+
+    .log-card-body {
+      padding: 7px 0;
+    }
+
+    .log-card-line {
+      padding: 2px 12px;
+      color: #ece8de;
+      white-space: pre;
+    }
+
     .log-viewport.is-wrapped .log-content {
       min-width: 0;
     }
 
     .log-viewport.is-wrapped .line-text {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .log-viewport.is-wrapped .log-card {
+      width: auto;
+    }
+
+    .log-viewport.is-wrapped .log-card-line {
       overflow-wrap: anywhere;
       white-space: pre-wrap;
     }
@@ -356,6 +395,60 @@
       return dateText + " " + rebootTime.hour + ":" + rebootTime.minute + ":" + rebootTime.second;
     }
 
+    function isBoxStart(line) {
+      return /^┌.*┐$/.test(line);
+    }
+
+    function isBoxEnd(line) {
+      return /^└.*┘$/.test(line);
+    }
+
+    function formatBoxTitle(line) {
+      const text = line.replace(/[┌┐─]/g, "").trim();
+      return text || "LOG";
+    }
+
+    function formatBoxLine(line) {
+      return line
+        .replace(/^\|\s?/, "")
+        .replace(/\s?\|$/, "")
+        .trimEnd();
+    }
+
+    function appendPlainLine(fragment, line) {
+      const lineEl = document.createElement("div");
+      lineEl.className = "log-line";
+
+      const textEl = document.createElement("code");
+      textEl.className = "line-text";
+      textEl.textContent = line;
+
+      lineEl.append(textEl);
+      fragment.append(lineEl);
+    }
+
+    function appendLogCard(fragment, title, bodyLines) {
+      const cardEl = document.createElement("section");
+      cardEl.className = "log-card";
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "log-card-title";
+      titleEl.textContent = title;
+
+      const bodyEl = document.createElement("div");
+      bodyEl.className = "log-card-body";
+
+      bodyLines.forEach((bodyLine) => {
+        const lineEl = document.createElement("div");
+        lineEl.className = "log-card-line";
+        lineEl.textContent = bodyLine;
+        bodyEl.append(lineEl);
+      });
+
+      cardEl.append(titleEl, bodyEl);
+      fragment.append(cardEl);
+    }
+
     function renderLog(text) {
       const lines = splitLines(text);
       const metadata = parseStocksMetadata(lines);
@@ -363,17 +456,28 @@
 
       contentEl.textContent = "";
 
-      lines.forEach((line, index) => {
-        const lineEl = document.createElement("div");
-        lineEl.className = "log-line";
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index];
+        if (!isBoxStart(line)) {
+          appendPlainLine(fragment, line);
+          continue;
+        }
 
-        const textEl = document.createElement("code");
-        textEl.className = "line-text";
-        textEl.textContent = line;
+        const title = formatBoxTitle(line);
+        const bodyLines = [];
+        let cursor = index + 1;
+        while (cursor < lines.length && !isBoxEnd(lines[cursor])) {
+          bodyLines.push(formatBoxLine(lines[cursor]));
+          cursor += 1;
+        }
 
-        lineEl.append(textEl);
-        fragment.append(lineEl);
-      });
+        if (cursor < lines.length && isBoxEnd(lines[cursor])) {
+          appendLogCard(fragment, title, bodyLines);
+          index = cursor;
+        } else {
+          appendPlainLine(fragment, line);
+        }
+      }
 
       if (!lines.length) {
         const emptyEl = document.createElement("div");
