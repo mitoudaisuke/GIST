@@ -601,9 +601,12 @@
           return;
         }
 
-        const pairs = line.slice(STOCKS_META_PREFIX.length).matchAll(/([a-zA-Z0-9_]+)=([^\s]+)/g);
-        for (const pair of pairs) {
+        const body = line.slice(STOCKS_META_PREFIX.length);
+        const pairPattern = /([a-zA-Z0-9_]+)=([^\s]+)/g;
+        let pair = pairPattern.exec(body);
+        while (pair) {
           metadata[pair[1]] = pair[2];
+          pair = pairPattern.exec(body);
         }
       });
       return metadata;
