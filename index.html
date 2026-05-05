@@ -154,8 +154,7 @@
     .log-card-header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 18px;
+      gap: 10px;
       padding: 7px 12px;
       border-bottom: 1px solid var(--line-soft);
       background: #23231f;
@@ -450,17 +449,17 @@
       const headerEl = document.createElement("div");
       headerEl.className = "log-card-header";
 
-      const titleEl = document.createElement("div");
-      titleEl.className = "log-card-title";
-      titleEl.textContent = title;
-      headerEl.append(titleEl);
-
       if (timeText) {
         const timeEl = document.createElement("time");
         timeEl.className = "log-card-time";
         timeEl.textContent = timeText;
         headerEl.append(timeEl);
       }
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "log-card-title";
+      titleEl.textContent = title;
+      headerEl.append(titleEl);
 
       const bodyEl = document.createElement("div");
       bodyEl.className = "log-card-body";
