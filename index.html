@@ -7,123 +7,435 @@
   <link rel="apple-touch-icon" href="./icon.png">
 
   <style>
+    :root {
+      color-scheme: dark;
+      --bg: #181716;
+      --panel: #20201e;
+      --panel-strong: #272724;
+      --panel-soft: #171715;
+      --line: #3b3a36;
+      --line-soft: #2d2c29;
+      --text: #f3f1ea;
+      --muted: #aaa59b;
+      --muted-strong: #d8d1c5;
+      --accent: #48c6a8;
+      --accent-strong: #7be0c8;
+      --warn: #e3bd5f;
+      --shadow: rgba(0, 0, 0, 0.38);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     html, body {
+      min-height: 100%;
       margin: 0;
       padding: 0;
-      background: #111;
-      color: #eee;
+      background: var(--bg);
+      color: var(--text);
     }
 
     body {
-      font-family: monospace;
+      min-height: 100vh;
+      min-height: 100dvh;
+      font-family: var(--sans);
+      padding: 0;
     }
 
-    pre {
-      margin: 0;
-      padding: 12px;
-      white-space: pre;
-      word-break: normal;
-      overflow-wrap: normal;
-      font-family: monospace;
-      font-size: 13px;
-      line-height: 1.35;
-      box-sizing: border-box;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+    button,
+    input {
+      font: inherit;
+    }
+
+    .viewer-shell {
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--panel-soft);
     }
 
     .viewer-header {
-      display: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .viewer-heading {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1px solid color-mix(in srgb, var(--accent), transparent 34%);
+      border-radius: 8px;
+      background: #18382f;
+      color: var(--accent-strong);
+      font: 800 14px/1 var(--sans);
+    }
+
+    .viewer-title {
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 750;
+      letter-spacing: 0;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .viewer-subtitle {
+      margin: 3px 0 0;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 12px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .viewer-actions,
+    .viewer-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .viewer-actions {
+      flex: 0 0 auto;
+    }
+
+    .viewer-status {
+      min-width: 112px;
+      padding: 6px 9px;
+      border: 1px solid var(--line-soft);
+      border-radius: 999px;
+      background: #1b1b19;
+      color: var(--muted-strong);
+      font-size: 12px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .viewer-button {
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel-strong);
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .viewer-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 11px;
+      font-size: 13px;
+    }
+
+    .viewer-button:hover {
+      border-color: color-mix(in srgb, var(--accent), var(--line) 45%);
+      background: #30302d;
+    }
+
+    .viewer-button:active {
+      transform: translateY(1px);
+    }
+
+    .viewer-button:disabled {
+      cursor: wait;
+      opacity: 0.66;
+    }
+
+    .button-icon {
+      color: var(--accent-strong);
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .viewer-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line-soft);
+      background: #1d1d1b;
+    }
+
+    .info-strip {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line-soft);
+      background: #171715;
+    }
+
+    .info-card {
+      min-width: 210px;
+      display: inline-flex;
+      flex: 1 1 210px;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 11px;
+      border: 1px solid var(--line-soft);
+      border-radius: 7px;
+      background: #20201e;
+    }
+
+    .info-icon {
+      width: 28px;
+      height: 28px;
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 7px;
+      background: #18382f;
+      color: var(--accent-strong);
+      font-size: 15px;
+    }
+
+    .info-label {
+      margin: 0 0 2px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.1;
+    }
+
+    .info-value {
+      margin: 0;
+      color: var(--text);
+      font: 13px/1.25 var(--mono);
+      white-space: nowrap;
+    }
+
+    .search-field {
+      position: relative;
+      flex: 1 1 280px;
+      min-width: 120px;
+    }
+
+    .search-field::before {
+      position: absolute;
+      top: 50%;
+      left: 11px;
+      color: var(--muted);
+      content: "⌕";
+      font-size: 16px;
+      line-height: 1;
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 36px;
+      padding: 0 12px 0 33px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      outline: none;
+      background: #121211;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent), transparent 78%);
+    }
+
+    .control-pill {
+      height: 36px;
+      display: inline-flex;
+      flex: 0 0 auto;
+      align-items: center;
+      gap: 7px;
+      padding: 0 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel-strong);
+      color: var(--muted-strong);
+      font-size: 12px;
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .control-pill input {
+      width: 15px;
+      height: 15px;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+
+    .line-stats {
+      flex: 0 0 auto;
+      color: var(--muted);
+      font: 12px/1 var(--mono);
+      white-space: nowrap;
+    }
+
+    .log-viewport {
+      flex: 1;
+      min-height: 0;
+      overflow: auto;
+      background: #10100f;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .log-content {
+      min-width: max-content;
+      padding: 10px 0 18px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      line-height: 1.55;
+      tab-size: 2;
+    }
+
+    .log-line {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      min-height: 24px;
+      border-left: 3px solid transparent;
+    }
+
+    .log-line:hover {
+      background: #191917;
+      border-left-color: var(--accent);
+    }
+
+    .line-number {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      padding: 2px 10px 2px 12px;
+      border-right: 1px solid var(--line-soft);
+      background: #10100f;
+      color: #777269;
+      text-align: right;
+      user-select: none;
+    }
+
+    .line-text {
+      padding: 2px 18px 2px 14px;
+      color: #ece8de;
+      white-space: pre;
+    }
+
+    .log-viewport.is-wrapped .log-content {
+      min-width: 0;
+    }
+
+    .log-viewport.is-wrapped .line-text {
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    mark {
+      border-radius: 3px;
+      background: color-mix(in srgb, var(--warn), transparent 25%);
+      color: #17120a;
+    }
+
+    .empty-state {
+      padding: 28px 18px;
+      color: var(--muted);
+      font: 13px/1.5 var(--sans);
     }
 
     @media (min-width: 768px) {
       html, body {
-        min-height: 100%;
-        background: #1a1a1a;
+        background: #1b1a18;
       }
 
       body {
-        min-height: 100vh;
         padding: 24px;
-        box-sizing: border-box;
-        color: #e8e8e8;
       }
 
       .viewer-shell {
         width: min(1180px, 100%);
         height: calc(100vh - 48px);
+        height: calc(100dvh - 48px);
+        min-height: 480px;
         margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        background: #101010;
-        border: 1px solid #333;
+        border: 1px solid var(--line);
         border-radius: 8px;
-        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+        box-shadow: 0 22px 58px var(--shadow);
       }
 
       .viewer-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        min-height: 52px;
-        padding: 0 16px 0 18px;
-        border-bottom: 1px solid #303030;
-        background: #181818;
-        box-sizing: border-box;
+        padding: 14px 16px 14px 18px;
       }
 
-      .viewer-title {
-        font-size: 14px;
-        font-weight: 700;
-        color: #f0f0f0;
+      .log-content {
+        font-size: 13.5px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .viewer-header {
+        align-items: flex-start;
+        flex-direction: column;
       }
 
-      .viewer-tools {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+      .viewer-actions,
+      .viewer-toolbar,
+      .info-strip {
+        width: 100%;
       }
 
       .viewer-status {
-        min-width: 170px;
-        color: #a8a8a8;
-        font-size: 12px;
-        text-align: right;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .viewer-toolbar {
+        flex-wrap: wrap;
+      }
+
+      .info-card {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .search-field {
+        flex-basis: 100%;
+      }
+
+      .button-text {
+        display: none;
       }
 
       .viewer-button {
-        height: 30px;
-        padding: 0 11px;
-        border: 1px solid #444;
-        border-radius: 6px;
-        background: #242424;
-        color: #e8e8e8;
-        font: inherit;
-        font-size: 12px;
-        cursor: pointer;
+        width: 38px;
+        justify-content: center;
+        padding: 0;
       }
 
-      .viewer-button:hover {
-        background: #2e2e2e;
-        border-color: #5a5a5a;
+      .log-line {
+        grid-template-columns: 46px minmax(0, 1fr);
       }
 
-      .viewer-button:active {
-        transform: translateY(1px);
-      }
-
-      pre {
-        flex: 1;
-        min-height: 0;
-        padding: 18px 22px;
-        font-size: 14px;
-        line-height: 1.55;
-        color: #f2f2f2;
-        background: #0f0f0f;
-        overflow: auto;
-        tab-size: 2;
+      .line-number {
+        padding-left: 8px;
+        padding-right: 8px;
       }
     }
   </style>
@@ -131,29 +443,113 @@
 <body>
   <main class="viewer-shell">
     <header class="viewer-header">
-      <div class="viewer-title">My Gist Viewer</div>
-      <div class="viewer-tools">
+      <div class="viewer-heading">
+        <div class="brand-mark" aria-hidden="true">G</div>
+        <div>
+          <h1 class="viewer-title">My Gist Viewer</h1>
+          <p class="viewer-subtitle" id="summary">simple.log</p>
+        </div>
+      </div>
+      <div class="viewer-actions">
         <span class="viewer-status" id="status">読み込み中...</span>
-        <button class="viewer-button" id="refreshButton" type="button">更新</button>
-        <button class="viewer-button" id="copyButton" type="button">コピー</button>
+        <button class="viewer-button" id="refreshButton" type="button" title="更新" aria-label="更新">
+          <span class="button-icon" aria-hidden="true">↻</span>
+          <span class="button-text">更新</span>
+        </button>
+        <button class="viewer-button" id="copyButton" type="button" title="コピー" aria-label="コピー">
+          <span class="button-icon" aria-hidden="true">⧉</span>
+          <span class="button-text">コピー</span>
+        </button>
       </div>
     </header>
-    <pre id="content">Loading...</pre>
+    <section class="viewer-toolbar" aria-label="ログ操作">
+      <label class="search-field">
+        <input class="search-input" id="searchInput" type="search" placeholder="検索" aria-label="検索" autocomplete="off">
+      </label>
+      <label class="control-pill">
+        <input id="wrapToggle" type="checkbox" checked>
+        折り返し
+      </label>
+      <label class="control-pill">
+        <input id="followToggle" type="checkbox" checked>
+        追従
+      </label>
+      <span class="line-stats" id="lineStats">0行</span>
+    </section>
+    <section class="info-strip" aria-label="システム情報">
+      <div class="info-card">
+        <span class="info-icon" aria-hidden="true">↻</span>
+        <div>
+          <p class="info-label">最終Mac再起動</p>
+          <p class="info-value" id="rebootInfo">未検出</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <span class="info-icon" aria-hidden="true">S</span>
+        <div>
+          <p class="info-label">最終Supervisor再起動</p>
+          <p class="info-value" id="supervisorInfo">未検出</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <span class="info-icon" aria-hidden="true">R</span>
+        <div>
+          <p class="info-label">最終Runner再起動</p>
+          <p class="info-value" id="runnerInfo">未検出</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <span class="info-icon" aria-hidden="true">5</span>
+        <div>
+          <p class="info-label">最終5分足更新</p>
+          <p class="info-value" id="m5Info">未検出</p>
+        </div>
+      </div>
+      <div class="info-card">
+        <span class="info-icon" aria-hidden="true">FX</span>
+        <div>
+          <p class="info-label">最終FX終値更新</p>
+          <p class="info-value" id="fxCloseInfo">未検出</p>
+        </div>
+      </div>
+    </section>
+    <div class="log-viewport is-wrapped" id="logViewport" tabindex="0">
+      <div class="log-content" id="content" role="log" aria-label="Gist log">
+        <div class="empty-state">Loading...</div>
+      </div>
+    </div>
   </main>
 
   <script>
     const GIST_RAW_URL = "https://gist.githubusercontent.com/mitoudaisuke/ea5ebde96fbaebe416bde113c7aed631/raw/simple.log";
     const contentEl = document.getElementById("content");
+    const logViewport = document.getElementById("logViewport");
     const statusEl = document.getElementById("status");
+    const summaryEl = document.getElementById("summary");
     const refreshButton = document.getElementById("refreshButton");
     const copyButton = document.getElementById("copyButton");
+    const searchInput = document.getElementById("searchInput");
+    const wrapToggle = document.getElementById("wrapToggle");
+    const followToggle = document.getElementById("followToggle");
+    const lineStats = document.getElementById("lineStats");
+    const rebootInfo = document.getElementById("rebootInfo");
+    const supervisorInfo = document.getElementById("supervisorInfo");
+    const runnerInfo = document.getElementById("runnerInfo");
+    const m5Info = document.getElementById("m5Info");
+    const fxCloseInfo = document.getElementById("fxCloseInfo");
 
     let lastLoadedAt = 0;
+    let currentText = "";
     const MIN_INTERVAL_MS = 3000;
+    const STOCKS_META_PREFIX = "# stocks-meta ";
 
     function scrollToBottom() {
+      if (!followToggle.checked) {
+        return;
+      }
+
       requestAnimationFrame(() => {
-        contentEl.scrollTop = contentEl.scrollHeight;
+        logViewport.scrollTop = logViewport.scrollHeight;
         window.scrollTo(0, document.documentElement.scrollHeight);
       });
     }
@@ -162,11 +558,191 @@
       statusEl.textContent = message;
     }
 
+    function splitLines(text) {
+      if (!text) {
+        return [];
+      }
+
+      return text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+    }
+
+    function appendHighlightedText(target, line, query) {
+      if (!query) {
+        target.textContent = line;
+        return;
+      }
+
+      const lowerLine = line.toLowerCase();
+      const lowerQuery = query.toLowerCase();
+      let cursor = 0;
+      let index = lowerLine.indexOf(lowerQuery);
+
+      while (index !== -1) {
+        if (index > cursor) {
+          target.append(document.createTextNode(line.slice(cursor, index)));
+        }
+
+        const mark = document.createElement("mark");
+        mark.textContent = line.slice(index, index + query.length);
+        target.append(mark);
+        cursor = index + query.length;
+        index = lowerLine.indexOf(lowerQuery, cursor);
+      }
+
+      if (cursor < line.length) {
+        target.append(document.createTextNode(line.slice(cursor)));
+      }
+    }
+
+    function parseStocksMetadata(lines) {
+      const metadata = {};
+      lines.forEach((line) => {
+        if (!line.startsWith(STOCKS_META_PREFIX)) {
+          return;
+        }
+
+        const pairs = line.slice(STOCKS_META_PREFIX.length).matchAll(/([a-zA-Z0-9_]+)=([^\s]+)/g);
+        for (const pair of pairs) {
+          metadata[pair[1]] = pair[2];
+        }
+      });
+      return metadata;
+    }
+
+    function formatDateTimeValue(value) {
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) {
+        return value;
+      }
+
+      return date.toLocaleString("ja-JP", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      });
+    }
+
+    function findLastRebootTime(lines) {
+      for (let i = lines.length - 1; i >= 0; i -= 1) {
+        const line = lines[i];
+        if (!/reboot|再起動/i.test(line)) {
+          continue;
+        }
+
+        const match = line.match(/\b([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?\b/);
+        if (match) {
+          return {
+            hour: match[1].padStart(2, "0"),
+            minute: match[2],
+            second: match[3] || "00"
+          };
+        }
+      }
+
+      return null;
+    }
+
+    function formatMetadataDate(metadata, key) {
+      if (!metadata[key]) {
+        return "未検出";
+      }
+
+      return formatDateTimeValue(metadata[key]);
+    }
+
+    function formatRebootInfo(lines, metadata) {
+      if (metadata.mac_last_boot_at) {
+        return formatDateTimeValue(metadata.mac_last_boot_at);
+      }
+
+      const rebootTime = findLastRebootTime(lines);
+      if (!rebootTime) {
+        return "未検出";
+      }
+
+      const now = new Date();
+      const rebootDate = new Date(now);
+      rebootDate.setHours(Number(rebootTime.hour), Number(rebootTime.minute), Number(rebootTime.second), 0);
+
+      if (rebootDate.getTime() - now.getTime() > 5 * 60 * 1000) {
+        rebootDate.setDate(rebootDate.getDate() - 1);
+      }
+
+      const dateText = rebootDate.toLocaleDateString("ja-JP", {
+        month: "2-digit",
+        day: "2-digit"
+      });
+      return dateText + " " + rebootTime.hour + ":" + rebootTime.minute + ":" + rebootTime.second;
+    }
+
+    function renderLog(text) {
+      currentText = text;
+      const lines = splitLines(text);
+      const metadata = parseStocksMetadata(lines);
+      const query = searchInput.value.trim();
+      const fragment = document.createDocumentFragment();
+      let visibleCount = 0;
+
+      contentEl.textContent = "";
+
+      lines.forEach((line, index) => {
+        if (query && !line.toLowerCase().includes(query.toLowerCase())) {
+          return;
+        }
+
+        visibleCount += 1;
+
+        const lineEl = document.createElement("div");
+        lineEl.className = "log-line";
+
+        const numberEl = document.createElement("span");
+        numberEl.className = "line-number";
+        numberEl.textContent = index + 1;
+
+        const textEl = document.createElement("code");
+        textEl.className = "line-text";
+        appendHighlightedText(textEl, line, query);
+
+        lineEl.append(numberEl, textEl);
+        fragment.append(lineEl);
+      });
+
+      if (!lines.length) {
+        const emptyEl = document.createElement("div");
+        emptyEl.className = "empty-state";
+        emptyEl.textContent = "ログが空です";
+        fragment.append(emptyEl);
+      } else if (!visibleCount) {
+        const emptyEl = document.createElement("div");
+        emptyEl.className = "empty-state";
+        emptyEl.textContent = "一致する行がありません";
+        fragment.append(emptyEl);
+      }
+
+      contentEl.append(fragment);
+      lineStats.textContent = query
+        ? visibleCount + "/" + lines.length + "行"
+        : lines.length + "行";
+      summaryEl.textContent = "simple.log · " + lines.length + "行";
+      rebootInfo.textContent = formatRebootInfo(lines, metadata);
+      supervisorInfo.textContent = formatMetadataDate(metadata, "last_supervisor_restart_at");
+      runnerInfo.textContent = formatMetadataDate(metadata, "last_runner_restart_at");
+      m5Info.textContent = formatMetadataDate(metadata, "last_m5_update_at");
+      fxCloseInfo.textContent = formatMetadataDate(metadata, "last_fx_close_update_at");
+    }
+
     async function loadGist(force = false) {
       const now = Date.now();
       if (!force && now - lastLoadedAt < MIN_INTERVAL_MS) {
         return;
       }
+
+      refreshButton.disabled = true;
+      setStatus("読み込み中...");
 
       try {
         const url = GIST_RAW_URL + "?t=" + now;
@@ -176,13 +752,15 @@
         }
 
         const text = await res.text();
-        contentEl.textContent = text;
+        renderLog(text);
         lastLoadedAt = now;
         setStatus("更新 " + new Date(now).toLocaleTimeString("ja-JP", { hour12: false }));
         scrollToBottom();
       } catch (e) {
         console.error(e);
         setStatus("更新失敗");
+      } finally {
+        refreshButton.disabled = false;
       }
     }
 
@@ -192,12 +770,20 @@
 
     copyButton.addEventListener("click", async () => {
       try {
-        await navigator.clipboard.writeText(contentEl.textContent);
+        await navigator.clipboard.writeText(currentText);
         setStatus("コピーしました");
       } catch (e) {
         console.error(e);
         setStatus("コピー失敗");
       }
+    });
+
+    searchInput.addEventListener("input", () => {
+      renderLog(currentText);
+    });
+
+    wrapToggle.addEventListener("change", () => {
+      logViewport.classList.toggle("is-wrapped", wrapToggle.checked);
     });
 
     document.addEventListener("visibilitychange", () => {
