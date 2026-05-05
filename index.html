@@ -31,22 +31,135 @@
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
+
+    .viewer-header {
+      display: none;
+    }
+
+    @media (min-width: 768px) {
+      html, body {
+        min-height: 100%;
+        background: #1a1a1a;
+      }
+
+      body {
+        min-height: 100vh;
+        padding: 24px;
+        box-sizing: border-box;
+        color: #e8e8e8;
+      }
+
+      .viewer-shell {
+        width: min(1180px, 100%);
+        height: calc(100vh - 48px);
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: #101010;
+        border: 1px solid #333;
+        border-radius: 8px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+      }
+
+      .viewer-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 52px;
+        padding: 0 16px 0 18px;
+        border-bottom: 1px solid #303030;
+        background: #181818;
+        box-sizing: border-box;
+      }
+
+      .viewer-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #f0f0f0;
+      }
+
+      .viewer-tools {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .viewer-status {
+        min-width: 170px;
+        color: #a8a8a8;
+        font-size: 12px;
+        text-align: right;
+      }
+
+      .viewer-button {
+        height: 30px;
+        padding: 0 11px;
+        border: 1px solid #444;
+        border-radius: 6px;
+        background: #242424;
+        color: #e8e8e8;
+        font: inherit;
+        font-size: 12px;
+        cursor: pointer;
+      }
+
+      .viewer-button:hover {
+        background: #2e2e2e;
+        border-color: #5a5a5a;
+      }
+
+      .viewer-button:active {
+        transform: translateY(1px);
+      }
+
+      pre {
+        flex: 1;
+        min-height: 0;
+        padding: 18px 22px;
+        font-size: 14px;
+        line-height: 1.55;
+        color: #f2f2f2;
+        background: #0f0f0f;
+        overflow: auto;
+        tab-size: 2;
+      }
+    }
   </style>
 </head>
 <body>
-  <pre id="content">Loading...</pre>
+  <main class="viewer-shell">
+    <header class="viewer-header">
+      <div class="viewer-title">My Gist Viewer</div>
+      <div class="viewer-tools">
+        <span class="viewer-status" id="status">Loading...</span>
+        <button class="viewer-button" id="refreshButton" type="button">Refresh</button>
+        <button class="viewer-button" id="copyButton" type="button">Copy</button>
+      </div>
+    </header>
+    <pre id="content">Loading...</pre>
+  </main>
 
   <script>
     const GIST_RAW_URL = "https://gist.githubusercontent.com/mitoudaisuke/ea5ebde96fbaebe416bde113c7aed631/raw/simple.log";
     const contentEl = document.getElementById("content");
+    const statusEl = document.getElementById("status");
+    const refreshButton = document.getElementById("refreshButton");
+    const copyButton = document.getElementById("copyButton");
 
     let lastLoadedAt = 0;
     const MIN_INTERVAL_MS = 3000;
 
     function scrollToBottom() {
       requestAnimationFrame(() => {
+        contentEl.scrollTop = contentEl.scrollHeight;
         window.scrollTo(0, document.documentElement.scrollHeight);
       });
+    }
+
+    function setStatus(message) {
+      statusEl.textContent = message;
     }
 
     async function loadGist(force = false) {
@@ -65,11 +178,27 @@
         const text = await res.text();
         contentEl.textContent = text;
         lastLoadedAt = now;
+        setStatus("Updated " + new Date(now).toLocaleTimeString());
         scrollToBottom();
       } catch (e) {
         console.error(e);
+        setStatus("Update failed");
       }
     }
+
+    refreshButton.addEventListener("click", () => {
+      loadGist(true);
+    });
+
+    copyButton.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(contentEl.textContent);
+        setStatus("Copied");
+      } catch (e) {
+        console.error(e);
+        setStatus("Copy failed");
+      }
+    });
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
