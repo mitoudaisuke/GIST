@@ -125,8 +125,6 @@
     }
 
     .log-line {
-      display: grid;
-      grid-template-columns: 58px minmax(0, 1fr);
       min-height: 24px;
       border-left: 3px solid transparent;
     }
@@ -134,18 +132,6 @@
     .log-line:hover {
       background: #191917;
       border-left-color: var(--accent);
-    }
-
-    .line-number {
-      position: sticky;
-      left: 0;
-      z-index: 1;
-      padding: 2px 10px 2px 12px;
-      border-right: 1px solid var(--line-soft);
-      background: #10100f;
-      color: #777269;
-      text-align: right;
-      user-select: none;
     }
 
     .line-text {
@@ -204,14 +190,6 @@
         min-width: 0;
       }
 
-      .log-line {
-        grid-template-columns: 46px minmax(0, 1fr);
-      }
-
-      .line-number {
-        padding-left: 8px;
-        padding-right: 8px;
-      }
     }
   </style>
 </head>
@@ -389,15 +367,11 @@
         const lineEl = document.createElement("div");
         lineEl.className = "log-line";
 
-        const numberEl = document.createElement("span");
-        numberEl.className = "line-number";
-        numberEl.textContent = index + 1;
-
         const textEl = document.createElement("code");
         textEl.className = "line-text";
         textEl.textContent = line;
 
-        lineEl.append(numberEl, textEl);
+        lineEl.append(textEl);
         fragment.append(lineEl);
       });
 
