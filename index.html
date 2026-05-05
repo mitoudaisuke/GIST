@@ -145,6 +145,7 @@
     }
 
     .log-card {
+      grid-column: 1 / -1;
       width: auto;
       min-width: 0;
       margin: 8px 14px;
@@ -479,18 +480,29 @@
       fragment.append(lineEl);
     }
 
-    function cardClassForTitle(title) {
+    function cardKindForTitle(title) {
       const normalized = String(title || "").toUpperCase();
       if (normalized.includes("FX")) {
-        return "is-fx";
+        return "fx";
       }
       if (normalized.includes("TYSE") || normalized.includes("NYSE")) {
+        return "equity";
+      }
+      return "other";
+    }
+
+    function cardClassForTitle(title) {
+      const kind = cardKindForTitle(title);
+      if (kind === "fx") {
+        return "is-fx";
+      }
+      if (kind === "equity") {
         return "is-equity";
       }
       return "is-other";
     }
 
-    function appendLogCard(fragment, title, bodyLines, timeText = "") {
+    function createLogCard(title, bodyLines, timeText = "") {
       const cardEl = document.createElement("section");
       cardEl.className = "log-card " + cardClassForTitle(title);
 
@@ -520,16 +532,53 @@
       });
 
       cardEl.append(headerEl, bodyEl);
-      fragment.append(cardEl);
+      return cardEl;
     }
 
-    function renderLog(text) {
-      const lines = splitLines(text);
-      const metadata = parseStocksMetadata(lines);
-      const fragment = document.createDocumentFragment();
+    function appendLogCard(fragment, title, bodyLines, timeText = "") {
+      fragment.append(createLogCard(title, bodyLines, timeText));
+    }
 
-      contentEl.textContent = "";
+    function appendLogCardPair(fragment, leftCard, rightCard) {
+      const rowEl = document.createElement("div");
+      rowEl.className = "log-card-row";
+      rowEl.append(createLogCard(leftCard.title, leftCard.bodyLines, leftCard.timeText));
+      rowEl.append(createLogCard(rightCard.title, rightCard.bodyLines, rightCard.timeText));
+      fragment.append(rowEl);
+    }
 
+    function timeToSeconds(timeText) {
+      const match = String(timeText || "").match(/^(\d{2}):(\d{2}):(\d{2})$/);
+      if (!match) {
+        return null;
+      }
+      return Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]);
+    }
+
+    function areNearbyCards(firstCard, secondCard) {
+      const firstSeconds = timeToSeconds(firstCard.timeText);
+      const secondSeconds = timeToSeconds(secondCard.timeText);
+      if (firstSeconds === null || secondSeconds === null) {
+        return true;
+      }
+      const diff = Math.abs(secondSeconds - firstSeconds);
+      return Math.min(diff, 86400 - diff) <= 10 * 60;
+    }
+
+    function arePairableCards(firstCard, secondCard) {
+      if (!firstCard || !secondCard) {
+        return false;
+      }
+      const kinds = [firstCard.kind, secondCard.kind].sort().join(":");
+      return kinds === "equity:fx" && areNearbyCards(firstCard, secondCard);
+    }
+
+    function appendCardItem(fragment, card) {
+      appendLogCard(fragment, card.title, card.bodyLines, card.timeText);
+    }
+
+    function parseLogItems(lines) {
+      const items = [];
       for (let index = 0; index < lines.length; index += 1) {
         const line = lines[index];
         if (isTimeOnlyLine(line) && isBoxStart(lines[index + 1] || "")) {
@@ -537,7 +586,7 @@
         }
 
         if (!isBoxStart(line)) {
-          appendPlainLine(fragment, line);
+          items.push({ type: "line", line });
           continue;
         }
 
@@ -551,11 +600,46 @@
         }
 
         if (cursor < lines.length && isBoxEnd(lines[cursor])) {
-          appendLogCard(fragment, title, bodyLines, timeText);
+          items.push({
+            type: "card",
+            title,
+            bodyLines,
+            timeText,
+            kind: cardKindForTitle(title)
+          });
           index = cursor;
         } else {
-          appendPlainLine(fragment, line);
+          items.push({ type: "line", line });
         }
+      }
+      return items;
+    }
+
+    function renderLog(text) {
+      const lines = splitLines(text);
+      const metadata = parseStocksMetadata(lines);
+      const fragment = document.createDocumentFragment();
+
+      contentEl.textContent = "";
+
+      const items = parseLogItems(lines);
+      for (let index = 0; index < items.length; index += 1) {
+        const item = items[index];
+        if (item.type === "line") {
+          appendPlainLine(fragment, item.line);
+          continue;
+        }
+
+        const nextItem = items[index + 1];
+        if (nextItem && nextItem.type === "card" && arePairableCards(item, nextItem)) {
+          const leftCard = item.kind === "fx" ? item : nextItem;
+          const rightCard = item.kind === "equity" ? item : nextItem;
+          appendLogCardPair(fragment, leftCard, rightCard);
+          index += 1;
+          continue;
+        }
+
+        appendCardItem(fragment, item);
       }
 
       if (!lines.length) {
