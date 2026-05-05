@@ -155,6 +155,17 @@
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
     }
 
+    .log-card-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .log-card-row .log-card {
+      margin-left: 14px;
+      margin-right: 14px;
+    }
+
     .log-card-header {
       display: flex;
       align-items: center;
@@ -235,16 +246,24 @@
         font-size: 13.5px;
       }
 
-      .log-card.is-fx {
+      .log-card-row {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        column-gap: 10px;
+        padding: 0 14px;
+      }
+
+      .log-card-row .log-card {
+        margin-left: 0;
+        margin-right: 0;
+      }
+
+      .log-card-row .log-card.is-fx {
         grid-column: 1;
       }
 
-      .log-card.is-equity {
+      .log-card-row .log-card.is-equity {
         grid-column: 2;
-      }
-
-      .log-card.is-other {
-        grid-column: 1 / -1;
+        margin-top: calc(8px + 1.55em);
       }
     }
 
