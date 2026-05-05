@@ -59,56 +59,6 @@
       background: var(--panel-soft);
     }
 
-    .viewer-header {
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 14px;
-      padding: 14px;
-      border-bottom: 1px solid var(--line);
-      background: var(--panel);
-    }
-
-    .viewer-heading {
-      min-width: 0;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .brand-mark {
-      width: 34px;
-      height: 34px;
-      display: grid;
-      flex: 0 0 auto;
-      place-items: center;
-      border: 1px solid color-mix(in srgb, var(--accent), transparent 34%);
-      border-radius: 8px;
-      background: #18382f;
-      color: var(--accent-strong);
-      font: 800 14px/1 var(--sans);
-    }
-
-    .viewer-title {
-      margin: 0;
-      overflow: hidden;
-      color: var(--text);
-      font-size: 15px;
-      font-weight: 750;
-      letter-spacing: 0;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .viewer-subtitle {
-      margin: 3px 0 0;
-      overflow: hidden;
-      color: var(--muted);
-      font-size: 12px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
     .info-strip {
       display: flex;
       align-items: center;
@@ -239,21 +189,12 @@
         box-shadow: 0 22px 58px var(--shadow);
       }
 
-      .viewer-header {
-        padding: 14px 16px 14px 18px;
-      }
-
       .log-content {
         font-size: 13.5px;
       }
     }
 
     @media (max-width: 700px) {
-      .viewer-header {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-
       .info-strip {
         width: 100%;
       }
@@ -276,15 +217,6 @@
 </head>
 <body>
   <main class="viewer-shell">
-    <header class="viewer-header">
-      <div class="viewer-heading">
-        <div class="brand-mark" aria-hidden="true">G</div>
-        <div>
-          <h1 class="viewer-title">My Gist Viewer</h1>
-          <p class="viewer-subtitle" id="summary">simple.log</p>
-        </div>
-      </div>
-    </header>
     <section class="info-strip" aria-label="システム情報">
       <div class="info-card">
         <span class="info-icon" aria-hidden="true">↻</span>
@@ -333,7 +265,6 @@
     const GIST_RAW_URL = "https://gist.githubusercontent.com/mitoudaisuke/ea5ebde96fbaebe416bde113c7aed631/raw/simple.log";
     const contentEl = document.getElementById("content");
     const logViewport = document.getElementById("logViewport");
-    const summaryEl = document.getElementById("summary");
     const rebootInfo = document.getElementById("rebootInfo");
     const supervisorInfo = document.getElementById("supervisorInfo");
     const runnerInfo = document.getElementById("runnerInfo");
@@ -478,7 +409,6 @@
       }
 
       contentEl.append(fragment);
-      summaryEl.textContent = "simple.log · " + lines.length + "行";
       rebootInfo.textContent = formatRebootInfo(lines, metadata);
       supervisorInfo.textContent = formatMetadataDate(metadata, "last_supervisor_restart_at");
       runnerInfo.textContent = formatMetadataDate(metadata, "last_runner_restart_at");
