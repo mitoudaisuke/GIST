@@ -133,9 +133,9 @@
     <header class="viewer-header">
       <div class="viewer-title">My Gist Viewer</div>
       <div class="viewer-tools">
-        <span class="viewer-status" id="status">Loading...</span>
-        <button class="viewer-button" id="refreshButton" type="button">Refresh</button>
-        <button class="viewer-button" id="copyButton" type="button">Copy</button>
+        <span class="viewer-status" id="status">読み込み中...</span>
+        <button class="viewer-button" id="refreshButton" type="button">更新</button>
+        <button class="viewer-button" id="copyButton" type="button">コピー</button>
       </div>
     </header>
     <pre id="content">Loading...</pre>
@@ -178,11 +178,11 @@
         const text = await res.text();
         contentEl.textContent = text;
         lastLoadedAt = now;
-        setStatus("Updated " + new Date(now).toLocaleTimeString());
+        setStatus("更新 " + new Date(now).toLocaleTimeString("ja-JP", { hour12: false }));
         scrollToBottom();
       } catch (e) {
         console.error(e);
-        setStatus("Update failed");
+        setStatus("更新失敗");
       }
     }
 
@@ -193,10 +193,10 @@
     copyButton.addEventListener("click", async () => {
       try {
         await navigator.clipboard.writeText(contentEl.textContent);
-        setStatus("Copied");
+        setStatus("コピーしました");
       } catch (e) {
         console.error(e);
-        setStatus("Copy failed");
+        setStatus("コピー失敗");
       }
     });
 
