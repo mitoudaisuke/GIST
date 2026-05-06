@@ -191,6 +191,18 @@
       padding: 7px 0;
     }
 
+    .log-card.is-git {
+      border-color: rgba(227, 189, 95, 0.72);
+    }
+
+    .log-card.is-git .log-card-header {
+      background: #2a261c;
+    }
+
+    .log-card.is-git .log-card-title {
+      color: var(--warn);
+    }
+
     .log-card-line {
       padding: 2px 12px;
       color: #ece8de;
@@ -265,6 +277,10 @@
       .log-card-row .log-card.is-equity {
         grid-column: 2;
         margin-top: calc(8px + 1.55em);
+      }
+
+      .log-card.is-git {
+        grid-column: 1;
       }
     }
 
@@ -488,6 +504,9 @@
       if (normalized.includes("TYSE") || normalized.includes("NYSE")) {
         return "equity";
       }
+      if (normalized.includes("GIT")) {
+        return "git";
+      }
       return "other";
     }
 
@@ -498,6 +517,9 @@
       }
       if (kind === "equity") {
         return "is-equity";
+      }
+      if (kind === "git") {
+        return "is-git";
       }
       return "is-other";
     }
