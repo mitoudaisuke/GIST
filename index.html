@@ -81,6 +81,18 @@
       background: #20201e;
     }
 
+    .info-card.is-mac {
+      border-color: rgba(130, 170, 255, 0.48);
+    }
+
+    .info-card.is-supervisor {
+      border-color: rgba(181, 142, 255, 0.5);
+    }
+
+    .info-card.is-runner {
+      border-color: rgba(240, 130, 92, 0.55);
+    }
+
     .info-icon {
       width: 28px;
       height: 28px;
@@ -91,6 +103,21 @@
       background: #18382f;
       color: var(--accent-strong);
       font-size: 15px;
+    }
+
+    .info-card.is-mac .info-icon {
+      background: #1b2d4a;
+      color: #a9c7ff;
+    }
+
+    .info-card.is-supervisor .info-icon {
+      background: #2b2144;
+      color: #cfb6ff;
+    }
+
+    .info-card.is-runner .info-icon {
+      background: #3a211b;
+      color: #ffb199;
     }
 
     .info-label {
@@ -203,6 +230,57 @@
       color: var(--warn);
     }
 
+    .log-card.is-runner-reboot {
+      border-color: rgba(240, 130, 92, 0.78);
+    }
+
+    .log-card.is-runner-reboot .log-card-header {
+      background: #2f201b;
+    }
+
+    .log-card.is-runner-reboot .log-card-title {
+      color: #ffb199;
+    }
+
+    .log-card.is-runner-reboot .log-card-line {
+      color: #ffd8c9;
+      font-weight: 700;
+    }
+
+    .log-card.is-supervisor-reboot {
+      border-color: rgba(181, 142, 255, 0.78);
+    }
+
+    .log-card.is-supervisor-reboot .log-card-header {
+      background: #2b2144;
+    }
+
+    .log-card.is-supervisor-reboot .log-card-title {
+      color: #cfb6ff;
+    }
+
+    .log-card.is-supervisor-reboot .log-card-line {
+      color: #e7dbff;
+      font-weight: 700;
+    }
+
+    .log-card.is-mac-reboot {
+      border-color: rgba(130, 170, 255, 0.78);
+    }
+
+    .log-card.is-mac-reboot .log-card-header {
+      background: #1b2d4a;
+    }
+
+    .log-card.is-mac-reboot .log-card-title {
+      color: #a9c7ff;
+    }
+
+    .log-card.is-mac-reboot .log-card-line {
+      color: #dbe8ff;
+      font-weight: 700;
+    }
+
     .log-card-line {
       padding: 2px 12px;
       color: #ece8de;
@@ -300,24 +378,24 @@
 <body>
   <main class="viewer-shell">
     <section class="info-strip" aria-label="システム情報">
-      <div class="info-card">
-        <span class="info-icon" aria-hidden="true">↻</span>
+      <div class="info-card is-mac">
+        <span class="info-icon" aria-hidden="true">M</span>
         <div>
-          <p class="info-label">最終Mac再起動</p>
+          <p class="info-label">Mac本体 boot</p>
           <p class="info-value" id="rebootInfo">未検出</p>
         </div>
       </div>
-      <div class="info-card">
+      <div class="info-card is-supervisor">
         <span class="info-icon" aria-hidden="true">S</span>
         <div>
-          <p class="info-label">最終Supervisor再起動</p>
+          <p class="info-label">Supervisor reboot</p>
           <p class="info-value" id="supervisorInfo">未検出</p>
         </div>
       </div>
-      <div class="info-card">
+      <div class="info-card is-runner">
         <span class="info-icon" aria-hidden="true">R</span>
         <div>
-          <p class="info-label">最終Runner再起動</p>
+          <p class="info-label">Runner reboot</p>
           <p class="info-value" id="runnerInfo">未検出</p>
         </div>
       </div>
@@ -407,26 +485,6 @@
       });
     }
 
-    function findLastRebootTime(lines) {
-      for (let i = lines.length - 1; i >= 0; i -= 1) {
-        const line = lines[i];
-        if (!/reboot|再起動/i.test(line)) {
-          continue;
-        }
-
-        const match = line.match(/\b([01]?\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?\b/);
-        if (match) {
-          return {
-            hour: match[1].padStart(2, "0"),
-            minute: match[2],
-            second: match[3] || "00"
-          };
-        }
-      }
-
-      return null;
-    }
-
     function formatMetadataDate(metadata, key) {
       if (!metadata[key]) {
         return "未検出";
@@ -435,29 +493,12 @@
       return formatDateTimeValue(metadata[key]);
     }
 
-    function formatRebootInfo(lines, metadata) {
+    function formatRebootInfo(metadata) {
       if (metadata.mac_last_boot_at) {
         return formatDateTimeValue(metadata.mac_last_boot_at);
       }
 
-      const rebootTime = findLastRebootTime(lines);
-      if (!rebootTime) {
-        return "未検出";
-      }
-
-      const now = new Date();
-      const rebootDate = new Date(now);
-      rebootDate.setHours(Number(rebootTime.hour), Number(rebootTime.minute), Number(rebootTime.second), 0);
-
-      if (rebootDate.getTime() - now.getTime() > 5 * 60 * 1000) {
-        rebootDate.setDate(rebootDate.getDate() - 1);
-      }
-
-      const dateText = rebootDate.toLocaleDateString("ja-JP", {
-        month: "2-digit",
-        day: "2-digit"
-      });
-      return dateText + " " + rebootTime.hour + ":" + rebootTime.minute + ":" + rebootTime.second;
+      return "未検出";
     }
 
     function isBoxStart(line) {
@@ -507,6 +548,18 @@
       if (normalized.includes("GIT")) {
         return "git";
       }
+      if (normalized.includes("MAC") && (normalized.includes("REBOOT") || normalized.includes("BOOT"))) {
+        return "mac-reboot";
+      }
+      if (normalized.includes("SUPERVISOR") && normalized.includes("REBOOT")) {
+        return "supervisor-reboot";
+      }
+      if (normalized.includes("RUNNER") && normalized.includes("REBOOT")) {
+        return "runner-reboot";
+      }
+      if (normalized.includes("REBOOT")) {
+        return "runner-reboot";
+      }
       return "other";
     }
 
@@ -520,6 +573,15 @@
       }
       if (kind === "git") {
         return "is-git";
+      }
+      if (kind === "runner-reboot") {
+        return "is-runner-reboot";
+      }
+      if (kind === "supervisor-reboot") {
+        return "is-supervisor-reboot";
+      }
+      if (kind === "mac-reboot") {
+        return "is-mac-reboot";
       }
       return "is-other";
     }
@@ -599,11 +661,36 @@
       appendLogCard(fragment, card.title, card.bodyLines, card.timeText);
     }
 
+    function parseInlineEventLine(line) {
+      const match = String(line || "").match(
+        /^(\d{2}:\d{2}:\d{2})\s*\|\s*(?:🔄\s*)?(?:(MAC|SUPERVISOR|RUNNER)\s+)?REBOOT\s*$/i
+      );
+      if (!match) {
+        return null;
+      }
+
+      const target = (match[2] || "RUNNER").toUpperCase();
+      const rebootKind = target.toLowerCase() + "-reboot";
+      return {
+        type: "card",
+        title: "🔄 " + target + " REBOOT",
+        bodyLines: [target.toLowerCase() + " restart event"],
+        timeText: match[1],
+        kind: rebootKind
+      };
+    }
+
     function parseLogItems(lines) {
       const items = [];
       for (let index = 0; index < lines.length; index += 1) {
         const line = lines[index];
         if (isTimeOnlyLine(line) && isBoxStart(lines[index + 1] || "")) {
+          continue;
+        }
+
+        const inlineEvent = parseInlineEventLine(line);
+        if (inlineEvent) {
+          items.push(inlineEvent);
           continue;
         }
 
@@ -672,7 +759,7 @@
       }
 
       contentEl.append(fragment);
-      rebootInfo.textContent = formatRebootInfo(lines, metadata);
+      rebootInfo.textContent = formatRebootInfo(metadata);
       supervisorInfo.textContent = formatMetadataDate(metadata, "last_supervisor_restart_at");
       runnerInfo.textContent = formatMetadataDate(metadata, "last_runner_restart_at");
       m5Info.textContent = formatMetadataDate(metadata, "last_m5_update_at");
