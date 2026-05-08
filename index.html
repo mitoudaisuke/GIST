@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>My Gist Viewer</title>
+  <title>Trade Monitor</title>
   <link rel="apple-touch-icon" href="./icon.png">
 
   <style>
@@ -415,14 +415,15 @@
       </div>
     </section>
     <div class="log-viewport is-wrapped" id="logViewport" tabindex="0">
-      <div class="log-content" id="content" role="log" aria-label="Gist log">
+      <div class="log-content" id="content" role="log" aria-label="Trade monitor log">
         <div class="empty-state">Loading...</div>
       </div>
     </div>
   </main>
 
   <script>
-    const GIST_RAW_URL = "https://gist.githubusercontent.com/mitoudaisuke/ea5ebde96fbaebe416bde113c7aed631/raw/simple.log";
+    // STOCKS updates this Gist log; trade-monitor only reads and renders it.
+    const LOG_RAW_URL = "https://gist.githubusercontent.com/mitoudaisuke/ea5ebde96fbaebe416bde113c7aed631/raw/simple.log";
     const contentEl = document.getElementById("content");
     const logViewport = document.getElementById("logViewport");
     const rebootInfo = document.getElementById("rebootInfo");
@@ -766,14 +767,14 @@
       fxCloseInfo.textContent = formatMetadataDate(metadata, "last_fx_close_update_at");
     }
 
-    async function loadGist(force = false) {
+    async function loadLog(force = false) {
       const now = Date.now();
       if (!force && now - lastLoadedAt < MIN_INTERVAL_MS) {
         return;
       }
 
       try {
-        const url = GIST_RAW_URL + "?t=" + now;
+        const url = LOG_RAW_URL + "?t=" + now;
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) {
           throw new Error("HTTP " + res.status);
@@ -790,16 +791,16 @@
 
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
-        loadGist(true);
+        loadLog(true);
       }
     });
 
     window.addEventListener("pageshow", () => {
-      loadGist(true);
+      loadLog(true);
     });
 
     window.addEventListener("load", () => {
-      loadGist(true);
+      loadLog(true);
     });
   </script>
 </body>
